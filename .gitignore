@@ -30,3 +30,17 @@
 *.exe
 *.out
 *.app
+
+#忽略 vs文件
+.vs
+
+#忽略user文件
+*.user
+
+#忽略各种dll lib
+*.dll
+*.lib
+
+#忽略debug release目录
+Debug/
+Release/
