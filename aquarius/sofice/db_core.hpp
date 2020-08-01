@@ -5,21 +5,22 @@
 
 namespace aquarius
 {
-	namespace pool
+	namespace sofice
 	{
-		template<class Core>
+		template<class T>
 		class db_core
 		{
 		public:
 			db_core()
-				: core_ptr_(new Core()) { }
+				: core_ptr_(new T()) { }
+
 			~db_core() = default;
 
 		public:
 			template<class... Args>
-			bool connect(Args&&... args)
+			bool connect(const std::string& dbname, Args&&... args)
 			{
-				return core_ptr_->connect(std::forward<Args>(args)...);
+				return core_ptr_->connect(dbname, std::forward<Args>(args)...);
 			}
 
 			bool disconnect()
@@ -30,6 +31,12 @@ namespace aquarius
 			int excute(const std::string& sql)
 			{
 				return core_ptr_->excute(sql.c_str());
+			}
+
+			template<class T>
+			auto create_collection()
+			{
+				return core_ptr_->create_collection<T>();
 			}
 
 			template<class T>
@@ -45,21 +52,21 @@ namespace aquarius
 			}
 
 			template<class T>
-			int insert(const T& t)
+			auto insert(const T& t)
 			{
 				return core_ptr_->insert(t);
 			}
 
 			template<class T>
-			int update(const T& t, const std::string& condition = "")
+			auto update(const T& t, const std::string& condition = "")
 			{
 				return core_ptr_->update(t, condition);
 			}
 
 			template<class T>
-			int delete_from_table(const std::string& condition = "")
+			auto remove(const std::string& condition = "")
 			{
-				return core_ptr_->delete_from_table<T>(condition);
+				return core_ptr_->remove<T>(condition);
 			}
 
 			template<class T>
@@ -73,27 +80,12 @@ namespace aquarius
 				return last_;
 			}
 
-			void rollback()
-			{
-				return core_ptr_->rollback();
-			}
-
-			bool commit()
-			{
-				return core_ptr_->commit();
-			}
-
 			void update_last_operate_time()
 			{
 				last_ = std::chrono::system_clock::now();
 			}
 
-			bool is_complete()
-			{
-				return core_ptr_->is_complete();
-			}
-
-			void create_database(const std::string& dbname)
+			auto create_database(const std::string& dbname)
 			{
 				return core_ptr_->create_database(dbname);
 			}
@@ -102,8 +94,13 @@ namespace aquarius
 			{
 				return core_ptr_->get_timeout();
 			}
+
+			auto add(const std::string& str)
+			{
+				core_ptr_->add(str);
+			}
 		private:
-			std::unique_ptr<Core> core_ptr_;
+			std::unique_ptr<T> core_ptr_;
 
 			std::chrono::time_point<std::chrono::system_clock> last_;
 		};

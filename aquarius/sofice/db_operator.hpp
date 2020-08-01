@@ -21,7 +21,7 @@ namespace aquarius
 
 
 			template<class Func>
-			auto join(const _Ty& data, Func&& func)
+			auto concat(const _Ty& data, Func&& func)
 			{
 				for(auto iter = _container.begin(); iter != _container.end();)
 				{
