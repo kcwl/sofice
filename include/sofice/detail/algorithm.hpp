@@ -93,6 +93,10 @@ namespace sofice
 
 				/*ss << detail::to_string(std::get<decltype(result)>(std::forward<T>(val)));*/
 			}
+			else if constexpr (is_string_v(std::remove_cvref_t<T>))
+			{
+				ss << "'" << val << "'";
+			}
 			else
 			{
 				ss << val;

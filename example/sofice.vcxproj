@@ -155,16 +155,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\sofice.hpp" />
-    <ClInclude Include="..\include\sofice\db_core.hpp" />
+    <ClInclude Include="..\include\sofice\circle_buffer.hpp" />
     <ClInclude Include="..\include\sofice\db_operator.hpp" />
     <ClInclude Include="..\include\sofice\db_pool.hpp" />
     <ClInclude Include="..\include\sofice\detail\algorithm.hpp" />
-    <ClInclude Include="..\include\sofice\detail\circle_buffer.hpp" />
     <ClInclude Include="..\include\sofice\detail\generate_sql.hpp" />
-    <ClInclude Include="..\include\sofice\detail\mysql.hpp" />
+    <ClInclude Include="..\include\sofice\detail\singleton.hpp" />
     <ClInclude Include="..\include\sofice\detail\sql_type.hpp" />
     <ClInclude Include="..\include\sofice\detail\type_traits.hpp" />
-    <ClInclude Include="..\include\sofice\detail\utility.hpp" />
+    <ClInclude Include="..\include\sofice\mysql.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

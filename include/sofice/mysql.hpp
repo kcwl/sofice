@@ -1,7 +1,8 @@
 ﻿#pragma once
 #include <string>
 #include <vector>
-#include "utility.hpp"
+#include <mysql.h>
+#include "detail/generate_sql.hpp"
 
 namespace sofice
 {
@@ -18,7 +19,7 @@ namespace sofice
 
 		public:
 			template<class... Args>
-			bool connect(const std::string& dbname, Args&&... args)
+			bool connect(Args&&... args)
 			{
 				if (conn_ptr_ != nullptr)
 					mysql_close(conn_ptr_);
@@ -62,36 +63,21 @@ namespace sofice
 				return error_;
 			}
 
-			auto excute(const std::string& sql)
+			bool excute_sql(const std::string& sql)
 			{
-				return;
+				mysql_query(conn_ptr_, sql.c_str());
+				return true;
 			}
 
 			bool excute_no_sql(const std::string& sql)
 			{
-				try
-				{
-					excute(sql);
-					return true;
-				}
-				catch (std::exception& e)
-				{
-					set_last_error(e.what());
-				}
-
-				return false;
-			}
-
-			template<class T>
-			auto create_collection()
-			{
-				return;
+				return mysql_query(conn_ptr_,sql.c_str()) == 0;
 			}
 
 			template<class T>
 			auto create_table(const std::string& engine = "InnoDB", const std::string& charset = "utf8")
 			{
-				auto sql = "";
+				auto sql = detail::create_table_sql(T{}, engine, charset);
 
 				return excute_no_sql(sql);
 			}
@@ -105,11 +91,11 @@ namespace sofice
 			template<class T>
 			auto insert(T&& t)
 			{
-				return excute_no_sql("");
+				return excute_no_sql(detail::generate_sql<insert_mode>(t));
 			}
 
-			template<class T>
-			auto insert(const std::vector<T>& vec)
+			template<class T, class = std::void_t<decltype(std::declval<T>().begin()),decltype(std::declval<T>().end())>>
+			auto insert(T&& vec)
 			{
 				start_transaction();
 
@@ -148,7 +134,7 @@ namespace sofice
 			template<class T>
 			auto update(T&& t, const std::string& condition)
 			{
-				auto sql = detail::generate_sql(t, update_mode{});
+				auto sql = detail::generate_sql<update_mode>(t);
 
 				return excute_no_sql(sql);
 			}
@@ -166,9 +152,9 @@ namespace sofice
 			{
 				std::vector<T> results{};
 
-				auto sql = detail::generate_sql(T{}, select_mode{});
+				auto sql = detail::generate_sql<select_mode>(T{});
 
-				excute(sql);
+				excute_sql(sql + condition);
 
 				auto res = mysql_store_result(conn_ptr_);
 
@@ -180,16 +166,19 @@ namespace sofice
 				return results;
 			}
 
-			auto create_database(const std::string& dbname, const std::string& charset = "utf8", const std::string& collate = "utf8_general_ci")
-			{
-				std::string sql = detail::generate_create_database_sql(dbname, charset, collate);
-
-				return excute(sql);
-			}
-
 			int get_timeout()
 			{
 				return time_out_;
+			}
+
+			auto get_last_operate_time()
+			{
+				return last_operate_time_;
+			}
+
+			void update_last_operate_time()
+			{
+				last_operate_time_ = std::chrono::system_clock::now();
 			}
 
 		private:
@@ -214,6 +203,8 @@ namespace sofice
 			std::string error_;
 
 			int time_out_ = 3000;
+
+			std::chrono::system_clock::time_point last_operate_time_{};
 
 			bool auto_reconnect_ = true;
 

@@ -9,26 +9,25 @@
 
 struct person
 {
+	int id_;
 	int age;
 	int sex;
 	std::string name;
 };
 
-AQUARIUS_REFLECT_DEFINE(person, "age", "sex", "name")
+AQUARIUS_REFLECT_DEFINE(person, "id", "age", "sex", "name")
 
 int main()
 {
-	auto& pool = sofice::mysql_pool::get_instance();
+	auto& pool = sofice::mysql_pool::instance();
 
 	pool.init_pool(5, "10.89.1.59", "kingsoft", "Kingsoft@123", "test", 3306);
 
 	auto conn = pool.get();
 
-	conn->create_database("test1");
-
 	conn->create_table<person>();
 
-	person p{23,2,"hello"};
+	person p{1,23,2,"hello"};
 
 	//conn->update<person>(p, "age > 10");
 
@@ -37,8 +36,6 @@ int main()
 	//conn->delete_from_table<person>();
 
 	conn->select<person>();
-
-	sofice::db_connect_pool_guard<sofice::mysql_pool, sofice::detail::mysql> plg(pool, conn);
 
 	std::cin.get();
 	return 0;

@@ -32,25 +32,22 @@
     <ClInclude Include="..\include\sofice.hpp">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\sofice\db_core.hpp">
-      <Filter>include\sofice</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\sofice\db_operator.hpp">
       <Filter>include\sofice</Filter>
     </ClInclude>
     <ClInclude Include="..\include\sofice\db_pool.hpp">
       <Filter>include\sofice</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\sofice\circle_buffer.hpp">
+      <Filter>include\sofice</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\sofice\mysql.hpp">
+      <Filter>include\sofice</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\sofice\detail\algorithm.hpp">
       <Filter>include\sofice\detail</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\sofice\detail\circle_buffer.hpp">
-      <Filter>include\sofice\detail</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\sofice\detail\generate_sql.hpp">
-      <Filter>include\sofice\detail</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\sofice\detail\mysql.hpp">
       <Filter>include\sofice\detail</Filter>
     </ClInclude>
     <ClInclude Include="..\include\sofice\detail\sql_type.hpp">
@@ -59,7 +56,7 @@
     <ClInclude Include="..\include\sofice\detail\type_traits.hpp">
       <Filter>include\sofice\detail</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\sofice\detail\utility.hpp">
+    <ClInclude Include="..\include\sofice\detail\singleton.hpp">
       <Filter>include\sofice\detail</Filter>
     </ClInclude>
   </ItemGroup>
