@@ -2,30 +2,27 @@
 //
 
 #include <iostream>
-#include <iostream>
 #include <vector>
-#include <aquarius/db_orm.hpp>
+#include <sofice.hpp>
 
-#include <aquarius/db_orm/detail/generate_sql.hpp>
 
 
 struct person
 {
 	int age;
-	int _sex;
-	std::string _name;
+	int sex;
+	std::string name;
 };
 
-AQUARIUS_REFLECT_DEFINE(person, "age", "_sex", "_name")
-
+AQUARIUS_REFLECT_DEFINE(person, "age", "sex", "name")
 
 int main()
 {
-	auto& pool = aquarius::mysql_pool::get_instance();
+	auto& pool = sofice::mysql_pool::get_instance();
 
-	pool.init(5, "10.89.1.59", "kingsoft", "Kingsoft@123", "test", 3306);
+	pool.init_pool(5, "10.89.1.59", "kingsoft", "Kingsoft@123", "test", 3306);
 
-	auto conn = aquarius::pool::db_connect_pool<aquarius::mysql>::get_instance().get();
+	auto conn = pool.get();
 
 	conn->create_database("test1");
 
@@ -41,7 +38,7 @@ int main()
 
 	conn->select<person>();
 
-	aquarius::pool::db_connect_pool_guard<aquarius::mysql_pool, aquarius::mysql> plg(pool, conn);
+	sofice::db_connect_pool_guard<sofice::mysql_pool, sofice::detail::mysql> plg(pool, conn);
 
 	std::cin.get();
 	return 0;
