@@ -5,102 +5,133 @@
 #include "sql_type.hpp"
 #include "type_traits.hpp"
 #include "algorithm.hpp"
-#include <reflect.hpp>
+
+#pragma warning(disable:4100)
+
 namespace sofice
 {
 	namespace detail
 	{
-		constexpr std::string_view create_table = "create table ";
-
-		template<class T>
-		constexpr auto create_table_sql(const T& val, const std::string& engine, const std::string& charset, const std::string& primary_key = "")
+		template<typename T>
+		std::string create(const std::string& primary_key, std::string const& engine, std::string const& charset)
 		{
-			std::string sql{};
-			std::string table_name = std::string(aquarius::tuple_name<T>());
-			sql.append("create table " + table_name + " (");
+			constexpr std::string_view table_name = reflect::rf_name<T>();
 
-			auto func = [&sql,primary_key](const std::string& element_column_name, auto element_column_val)
-			{
-				std::string is_null{};
+			std::string sql = "create table " + std::string(table_name) + " (";
 
-				element_column_name.compare(primary_key) == 0 ? is_null = " not null" : is_null = " default null";
+			detail::for_each(T{}, [&sql, primary_key] (auto name, auto value, std::size_t&& I)
+				{
+					std::string is_null = name.compare(primary_key) == 0 ? " not null" : " default null";
 
-				sql.append("" + element_column_name + " " + detail::mysql_type(detail::indentify<decltype(element_column_val)>{}) + is_null + ",");
-			};
+					sql.append("" + std::string(name) + " " + detail::mysql_type(detail::indentify<decltype(value)>{}) + is_null);
 
-			detail::for_each(val, func);
+					if (I != reflect::rf_size_v<T> -1)
+						sql.append(",");
+				});
 
-			!primary_key.empty() ? (void)sql.append("primary key (" + primary_key + ")") : (void)sql.erase(sql.end() - 1);
+			!primary_key.empty() ? (void)sql.append(" primary key (" + primary_key + ")") : (void)sql.erase(sql.end() - 1);
 
 			sql.append(") engine=" + engine + " default charset=" + charset + ";");
 
 			return sql;
 		}
 
-		template<class T>
-		auto delete_table_sql()
+		template<typename T>
+		std::string remove()
 		{
-			std::string sql{};
+			std::string sql = "delete table if exists ";
 
-			sql.append("delete table if exists ");
-			sql.append(aquarius::tuple_name<T>());
+
+			constexpr auto table_name = reflect::rf_name<T>();
+
+			sql.append(table_name);
+
 			sql.append(";");
 
 			return sql;
 		}
 
-		template<class Mode, class T>
-		auto generate_sql(const T& val)
+		template<typename Mode, typename T>
+		struct generate 
 		{
-			std::string sql{};
-
-			if constexpr (std::is_same_v<Mode, insert_mode>)
+			static std::string sql(T&& val)
 			{
-				auto table_name = std::string(aquarius::tuple_name<T>());
+				return std::string{};
+			}
+		};
 
-				sql.append("insert into " + table_name + " values(");
+		template<typename T>
+		struct generate<insert_mode,T>
+		{
+			static std::string sql(T const& val)
+			{
+				constexpr auto table_name = reflect::rf_name<T>();
 
-				detail::for_each(val, [&sql] (auto item_name , auto value) 
+				std::string sql = "insert into " + std::string(table_name) + " values(";
+
+				detail::for_each(std::move(val), [&sql] (auto name, auto value, std::size_t&& I)					
 					{
-						item_name = "";
-						sql += value + ",";
+						sql += detail::to_string(std::move(value));
+
+						if (I != reflect::rf_size_v<T> -1)
+							sql.append(",");
 					});
 
-				sql.replace(sql.size() - 1, 1, ");");
+				sql.append(");");
+
+				return sql;
 			}
-			else if constexpr (std::is_same_v<Mode, update_mode>)
+		};
+
+		template<typename T>
+		struct generate<update_mode, T>
+		{
+			static std::string sql(T const& val)
 			{
-				auto table_name = std::string(aquarius::tuple_name<T>());
+				constexpr auto table_name = reflect::rf_name<std::remove_reference_t<T>>();
 
-				sql.append("update " + table_name + " set ");
+				std::string sql = "update " + std::string(table_name) + " set ";
 
-				detail::for_each(val, [&sql] (const std::string& element_column_name, auto element_column_val)
+				detail::for_each(std::move(val), [&sql](auto name, auto value, std::size_t&& I)
 					{
-						sql.append(element_column_name + " = ");
+						sql.append(std::string(name) + " = ");
 
-						sql.append(detail::to_string(element_column_val));
+						sql.append(detail::to_string(std::move(value)));
 
-						sql.append(",");
+						if(I != reflect::rf_size_v<T> -1)
+							sql.append(",");
 					});
 
-				sql.erase(sql.end() - 1);
+				sql.append(" where id = " + std::to_string(val.id_) + ";");
 
-				sql.append("where id = " + std::to_string(val.id_) + ";");
+				return sql;
 			}
-			else if constexpr (std::is_same_v<Mode, delete_mode>)
+		};
+
+		template<typename T>
+		struct generate<delete_mode,T>
+		{
+			static std::string sql(T const& t)
 			{
-				auto table_name = std::string(aquarius::tuple_name<T>());
+				auto table_name = std::string(reflect::rf_name<std::remove_reference_t<T>>());
 
-				sql.append("delete from " + table_name + ";");
+				std::string sql = "delete from " + std::string(table_name) + ";";
+
+				return sql;
 			}
-			else if constexpr (std::is_same_v<Mode, select_mode>)
+		};
+
+		template<typename T>
+		struct generate<select_mode, T>
+		{
+			static std::string sql()
 			{
-				auto table_name = std::string(aquarius::tuple_name<T>());
+				auto table_name = std::string(reflect::rf_name<std::remove_reference_t<T>>());
 
-				sql.append("select * from " + table_name + ";");
+				std::string sql = "select * from " + std::string(table_name) + ";";
+
+				return sql;
 			}
-
-			return sql;
-		}
+		};
 	}
 }

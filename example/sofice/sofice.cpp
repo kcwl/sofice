@@ -9,13 +9,12 @@
 
 struct person
 {
+	REFLECT_DEFINE(
 	int id_;
 	int age;
 	int sex;
-	std::string name;
+	std::string name;)
 };
-
-AQUARIUS_REFLECT_DEFINE(person, "id", "age", "sex", "name")
 
 int main()
 {
@@ -25,15 +24,15 @@ int main()
 
 	auto conn = pool.get();
 
-	conn->create_table<person>();
+	conn->create<person>("id_");
 
 	person p{1,23,2,"hello"};
 
-	//conn->update<person>(p, "age > 10");
+	conn->update(p);
 
 	conn->insert(p);
 
-	//conn->delete_from_table<person>();
+	conn->remove<person>();
 
 	conn->select<person>();
 

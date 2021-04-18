@@ -3,53 +3,58 @@
 #include <string>
 #include <string_view>
 #include <mysql.h>
-#include <reflect.hpp>
+#include "type_traits.hpp"
+#include "../3rd/reflect/include/reflect.hpp"
 
 namespace sofice
 {
 	namespace detail
 	{
-		template<class Tuple,class Func,std::size_t... I>
-		constexpr auto for_each(Tuple&& tuple, Func&& f, std::index_sequence<I...>)
+		template<typename Tuple,typename Func,std::size_t... I>
+		constexpr auto for_each_impl(Tuple&& tuple, Func&& f, std::index_sequence<I...>)
 		{
-			return (std::forward<Func>(f)(aquarius::tuple_element_name<I>(std::forward<Tuple>(tuple)), aquarius::tuple_element<I>(std::forward<Tuple>(tuple))),...);
+			return (std::forward<Func>(f)(reflect::rf_elem_name<Tuple,I>(), reflect::rf_element<I>(std::forward<Tuple>(tuple)),std::move(I)),...);
 		}
 		
-		template<class T,class Func>
+		template<typename T,typename Func>
 		constexpr auto for_each(T&& tp, Func&& f)
 		{
-			return for_each(std::forward<T>(tp), std::forward<Func>(f), std::make_index_sequence<reflect::tuple_size<T>::value>{});
+			return detail::template for_each_impl(std::forward<T>(tp), std::forward<Func>(f), std::make_index_sequence<reflect::rf_size_v<T>>{});
 		}
 
-		template<class T>
-		constexpr auto to_string(T&& val);
+		template<typename T>
+		std::string to_string(T&& val);
 
-		template<std::size_t I,class V>
+		template<std::size_t I,typename V>
 		void f(std::stringstream& ss, V&& val)
 		{
 			if(I == std::forward<V>(val).index())
-				ss << detail::to_string(std::get<I>(std::forward<V>(val)));
+				ss << detail::template to_string(std::get<I>(std::forward<V>(val)));
 		}
 
 
-		template<class V, std::size_t... I>
+		template<typename V, std::size_t... I>
 		constexpr auto for_each_variant(V&& val, std::stringstream& ss, std::index_sequence<I...>)
 		{
-			return (f<I>(ss, std::forward<V>(val)),...);
+			return (detail::template f<I>(ss, std::forward<V>(val)),...);
 		}
 
-		template<class V>
+		template<typename V>
 		constexpr auto for_each_variant(V&& val,std::stringstream& ss)
 		{
 			return for_each_variant(std::forward<V>(val), ss, std::make_index_sequence<std::variant_size_v<std::remove_cvref_t<V>>>{});
 		}
 
 
-		template<class T>
-		constexpr auto to_string(T&& val)
+		template<typename T>
+		std::string to_string(T&& val)
 		{
 			std::stringstream ss;
-			if constexpr(is_container_v<std::remove_cvref_t<T>>)
+			if constexpr (is_string_v<std::remove_cvref_t<T>>)
+			{
+				ss << "'" << val << "'";
+			}
+			else if constexpr(is_container_v<std::remove_cvref_t<T>>)
 			{
 				ss << "{";
 				std::for_each(val.begin(), val.end(), [&](auto iter)
@@ -83,7 +88,7 @@ namespace sofice
 			}
 			else if constexpr (std::is_trivial_v<std::remove_reference_t<T>>)
 			{
-				
+				ss << val;
 			}
 			else if constexpr (is_variant_v<std::remove_cvref_t<T>>)
 			{
@@ -93,10 +98,6 @@ namespace sofice
 
 				/*ss << detail::to_string(std::get<decltype(result)>(std::forward<T>(val)));*/
 			}
-			else if constexpr (is_string_v(std::remove_cvref_t<T>))
-			{
-				ss << "'" << val << "'";
-			}
 			else
 			{
 				ss << val;
@@ -105,7 +106,7 @@ namespace sofice
 			return ss.str();
 		}
 
-		template<class T>
+		template<typename T>
 		auto cast(const char* val)
 		{
 			std::stringstream ss;
@@ -117,67 +118,47 @@ namespace sofice
 			return t;
 		}
 
-		template<class T,std::size_t... I>
-		auto construct_data(const MYSQL_ROW& row, std::index_sequence<I...>)
+		template<typename T,std::size_t... I>
+		auto to_struct_impl(const MYSQL_ROW& row, std::index_sequence<I...>)
 		{
-			return T{ cast<decltype(aquarius::tuple_element<I>(T{}))>(row[I])... };
+			return T{ cast<decltype(reflect::rf_element<I>(T{}))>(row[I])... };
 		}
 
-		template<class T>
-		auto construct_data(const MYSQL_ROW& row)
+		template<typename T>
+		auto to_struct(const MYSQL_ROW& row)
 		{
-			return construct_data<T>(row, std::make_index_sequence<aquarius::tuple_size_v<T>>{});
+			return detail::template to_struct_impl<T>(row, std::make_index_sequence<reflect::rf_size_v<T>>{});
 		}
 
-		template<std::string_view const&, class, std::string_view const&, class>
-		struct combine;
-
-		template<std::string_view const& lhs,std::size_t... L, std::string_view const& rhs, std::size_t... R>
-		struct combine<lhs,std::index_sequence<L...>,rhs,std::index_sequence<R...>>
+		template<const std::string_view&... strs>
+		struct concat
 		{
-			inline static constexpr const char value[]{lhs[L]...,rhs[R]...,0};
+			constexpr static auto impl() noexcept
+			{
+				constexpr auto len = (strs.size() + ... + 0);
+				std::array<char, len + 1> arr{};
+
+				auto f = [i = 0, &arr](auto const& str) mutable
+				{
+					for (auto s : str)
+						arr[i++] = s;
+
+					return arr;
+				};
+
+				(f(strs), ...);
+
+				arr[len] = '\0';
+
+				return arr;
+			}
+
+			static constexpr auto arr = impl();
+
+			static constexpr std::string_view value{arr.data(), arr.size() - 1};
 		};
 
-		template<std::string_view const&...> 
-		struct concat;
-
-		template<>
-		struct concat<>
-		{
-			static constexpr std::string_view value = "";
-		};
-
-		template<std::string_view const& s1, std::string_view const& s2>
-		struct concat<s1,s2>
-		{
-			static constexpr std::string_view value = combine<s1, std::make_index_sequence<s1.size()>, s2, std::make_index_sequence<s2.size()>>::value;
-		};
-
-		template<std::string_view const& S, std::string_view const&... args>
-		struct concat<S, args...>
-		{
-			static constexpr std::string_view value = concat<S, concat<args...>::value>::value;
-		};
-
-//		template<std::string_view const&... args>
-//		inline static constexpr auto concat_v = concat<args...>::value;
-//
-//		std::string to_utf8(const std::string& str)
-//		{
-//			std::vector<wchar_t> buff(str.size());
-//#ifdef _MSC_VER
-//			std::locale loc("zh-CN");
-//#else
-//			std::locale loc("zh-CN.GB18030");
-//#endif
-//			wchar_t* pwsz = nullptr;
-//			const char* sz = nullptr;
-//
-//			std::mbstate_t state{};
-//
-//			std::use_facet<std::codecvt<wchar_t, char, std::mbstate_t>>(loc).in(state, str.data(), str.data() + str.size(), sz, buff.data(), buff.data() + buff.size(), pwsz);
-//
-//			return std::wstring_convert<std::codecvt_utf8<wchar_t>>{}.to_bytes(std::wstring(buff.data(), buff.size()));
-//		}
+		template<std::string_view const&... strs>
+		constexpr static auto concat_v = concat<strs...>::value;
 	}
 }
