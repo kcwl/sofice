@@ -102,7 +102,7 @@ namespace sofice
 							sql.append(",");
 					});
 
-				sql.append(" where id = " + std::to_string(val.id_) + ";");
+				sql.append(" where id = " + std::to_string(val.id) + ";");
 
 				return sql;
 			}
@@ -111,7 +111,7 @@ namespace sofice
 		template<typename T>
 		struct generate<delete_mode,T>
 		{
-			static std::string sql(T const& t)
+			static std::string sql()
 			{
 				auto table_name = std::string(reflect::rf_name<std::remove_reference_t<T>>());
 

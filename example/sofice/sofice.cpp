@@ -10,7 +10,7 @@
 struct person
 {
 	REFLECT_DEFINE(
-	int id_;
+	int id;
 	int age;
 	int sex;
 	std::string name;)
@@ -18,23 +18,33 @@ struct person
 
 int main()
 {
-	auto& pool = sofice::mysql_pool::instance();
+	context ctx("10.89.1.206", "kcwl", "Kcwl.123", "test", 3306);
+	ctx.run();
 
-	pool.init_pool(5, "10.89.1.59", "kingsoft", "Kingsoft@123", "test", 3306);
-
-	auto conn = pool.get();
-
-	conn->create<person>("id_");
+	////conn->create<person>("id_");
 
 	person p{1,23,2,"hello"};
+	ctx.insert(p);
 
-	conn->update(p);
+	ctx.select<person>([](auto res)
+					   {
+						   for(auto iter : res)
+						   {
+							   std::cout << iter.id << iter.age << iter.sex << iter.name << std::endl;
+						   }
+					   });
 
-	conn->insert(p);
+	//ctx.update(p);
 
-	conn->remove<person>();
+	//ctx.remove<person>();
 
-	conn->select<person>();
+	//conn->update(p);
+
+	//conn->insert(p);
+
+	//conn->remove<person>();
+
+	//conn->select<person>();
 
 	std::cin.get();
 	return 0;
