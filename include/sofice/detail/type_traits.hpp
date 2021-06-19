@@ -3,7 +3,7 @@
 #include <variant>
 #include <string>
 
-namespace sofice
+namespace asmpp
 {
 	struct insert_mode { };
 

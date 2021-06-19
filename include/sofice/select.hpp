@@ -2,27 +2,31 @@
 #include "service.hpp"
 #include "detail/generate_sql.hpp"
 
-class select_context
+namespace asmpp
 {
-public:
-	explicit select_context(std::shared_ptr<service> service_ptr)
-		: service_ptr_(service_ptr)
-	{ }
-
-public:
-	template<typename T,typename Func>
-	void excute(Func&& f)
+	class select_context
 	{
-		auto sql = sofice::detail::template generate<sofice::select_mode, T>::sql();
+	public:
+		explicit select_context(std::shared_ptr<service> service_ptr)
+			: service_ptr_(service_ptr)
+		{
+		}
 
-		auto results = service_ptr_->real_query<T>(sql);
+	public:
+		template<typename T, typename Func>
+		void excute(Func&& f)
+		{
+			auto sql = asmpp::detail::template generate<asmpp::select_mode, T>::sql();
 
-		if(results.empty())
-			return;
+			auto results = service_ptr_->real_query<T>(sql);
 
-		f(results);
-	}
+			if(results.empty())
+				return;
 
-private:
-	std::shared_ptr<service> service_ptr_;
-};
+			f(results);
+		}
+
+	private:
+		std::shared_ptr<service> service_ptr_;
+	};
+}

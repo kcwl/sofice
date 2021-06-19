@@ -6,7 +6,7 @@
 
 #include "sofice/context.hpp"
 
-namespace sofice
+namespace asmpp
 {
 	template<class T>
 	using dbpool = db_pool<T>;
