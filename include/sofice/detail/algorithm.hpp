@@ -4,7 +4,7 @@
 #include <string_view>
 #include <mysql.h>
 #include "type_traits.hpp"
-#include "../3rd/reflect/include/reflect.hpp"
+#include "../reflect/include/reflect.hpp"
 
 namespace sofice
 {
