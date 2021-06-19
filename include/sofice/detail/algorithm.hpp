@@ -6,45 +6,33 @@
 #include "type_traits.hpp"
 #include "../reflect/include/reflect.hpp"
 
-namespace sofice
+namespace asmpp
 {
 	namespace detail
 	{
 		template<typename Tuple,typename Func,std::size_t... I>
-		constexpr auto for_each_impl(Tuple&& tuple, Func&& f, std::index_sequence<I...>)
+		constexpr auto for_each(Tuple&& tuple, Func&& f, std::index_sequence<I...>)
 		{
-			return (std::forward<Func>(f)(reflect::rf_elem_name<Tuple,I>(), reflect::rf_element<I>(std::forward<Tuple>(tuple)),std::move(I)),...);
+			return (std::forward<Func>(f)(reflect::rf_element<I>(std::forward<Tuple>(tuple)),I),...);
 		}
 		
 		template<typename T,typename Func>
 		constexpr auto for_each(T&& tp, Func&& f)
 		{
-			return detail::template for_each_impl(std::forward<T>(tp), std::forward<Func>(f), std::make_index_sequence<reflect::rf_size_v<T>>{});
+			return detail::template for_each(std::forward<T>(tp), std::forward<Func>(f), std::make_index_sequence<reflect::rf_size_v<T>>{});
 		}
 
-		template<typename T>
-		std::string to_string(T&& val);
-
-		template<std::size_t I,typename V>
-		void f(std::stringstream& ss, V&& val)
+		template<typename Tuple, typename Func, std::size_t... I>
+		constexpr auto for_each_elem(Tuple&& tuple, Func&& f, std::index_sequence<I...>)
 		{
-			if(I == std::forward<V>(val).index())
-				ss << detail::template to_string(std::get<I>(std::forward<V>(val)));
+			return (std::forward<Func>(f)(reflect::rf_elem_name<Tuple, I>(), reflect::rf_element<I>(std::forward<Tuple>(tuple)), std::move(I)), ...);
 		}
 
-
-		template<typename V, std::size_t... I>
-		constexpr auto for_each_variant(V&& val, std::stringstream& ss, std::index_sequence<I...>)
+		template<typename T,typename Func>
+		constexpr auto for_each_elem(T&& tp, Func&& f)
 		{
-			return (detail::template f<I>(ss, std::forward<V>(val)),...);
+			return detail::template for_each_elem(std::forward<T>(tp), std::forward<Func>(f), std::make_index_sequence<reflect::rf_size_v<T>>{});
 		}
-
-		template<typename V>
-		constexpr auto for_each_variant(V&& val,std::stringstream& ss)
-		{
-			return for_each_variant(std::forward<V>(val), ss, std::make_index_sequence<std::variant_size_v<std::remove_cvref_t<V>>>{});
-		}
-
 
 		template<typename T>
 		std::string to_string(T&& val)

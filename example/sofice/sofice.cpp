@@ -18,7 +18,7 @@ struct person
 
 int main()
 {
-	context ctx("10.89.1.206", "kcwl", "Kcwl.123", "test", 3306);
+	asmpp::context ctx("10.89.1.206", "kcwl", "Kcwl.123", "test", 3306);
 	ctx.run();
 
 	////conn->create<person>("id_");
@@ -34,9 +34,9 @@ int main()
 						   }
 					   });
 
-	//ctx.update(p);
+	ctx.update(p);
 
-	//ctx.remove<person>();
+	ctx.remove<person>();
 
 	//conn->update(p);
 

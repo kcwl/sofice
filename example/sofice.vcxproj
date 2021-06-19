@@ -155,17 +155,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\sofice.hpp" />
-    <ClInclude Include="..\include\sofice\circle_buffer.hpp" />
     <ClInclude Include="..\include\sofice\context.hpp" />
     <ClInclude Include="..\include\sofice\db_operator.hpp" />
-    <ClInclude Include="..\include\sofice\db_pool.hpp" />
     <ClInclude Include="..\include\sofice\detail\algorithm.hpp" />
     <ClInclude Include="..\include\sofice\detail\generate_sql.hpp" />
-    <ClInclude Include="..\include\sofice\detail\singleton.hpp" />
     <ClInclude Include="..\include\sofice\detail\sql_type.hpp" />
     <ClInclude Include="..\include\sofice\detail\type_traits.hpp" />
     <ClInclude Include="..\include\sofice\update.hpp" />
-    <ClInclude Include="..\include\sofice\mysql.hpp" />
     <ClInclude Include="..\include\sofice\select.hpp" />
     <ClInclude Include="..\include\sofice\service.hpp" />
     <ClInclude Include="..\include\sofice\service_pool.hpp" />

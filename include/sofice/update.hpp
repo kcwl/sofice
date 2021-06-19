@@ -2,31 +2,34 @@
 #include "service.hpp"
 #include "detail/generate_sql.hpp"
 
-class update_context
+namespace asmpp
 {
-public:
-	explicit update_context(std::shared_ptr<service> service_ptr)
-		: service_ptr_(service_ptr)
+	class update_context
 	{
-	}
+	public:
+		explicit update_context(std::shared_ptr<service> service_ptr)
+			: service_ptr_(service_ptr)
+		{
+		}
 
-public:
-	template<typename T,typename Tag>
-	std::size_t excute(const T& value )
-	{
-		auto sql = sofice::detail::template generate<Tag, T>::sql(value);
+	public:
+		template<typename T, typename Tag>
+		std::size_t excute(T value)
+		{
+			auto sql = asmpp::detail::template generate<Tag, T>::sql(std::move(value));
 
-		return service_ptr_->query(sql);
-	}
+			return service_ptr_->query(sql);
+		}
 
-	template<typename T,typename Tag>
-	std::size_t excute()
-	{
-		auto sql = sofice::detail::template generate<Tag, T>::sql();
+		template<typename T, typename Tag>
+		std::size_t excute()
+		{
+			auto sql = asmpp::detail::template generate<Tag, T>::sql();
 
-		return service_ptr_->query<T>(sql);
-	}
+			return service_ptr_->query(sql);
+		}
 
-private:
-	std::shared_ptr<service> service_ptr_;
-};
+	private:
+		std::shared_ptr<service> service_ptr_;
+	};
+}
