@@ -69,6 +69,8 @@ namespace sofice
 		{
 			connect_args_ = std::make_tuple(std::forward<Args>(args)...);
 
+			pool_.resize_util(size);
+
 			for (int i = 0; i < size; i++)
 			{
 				auto conn_ptr = create();

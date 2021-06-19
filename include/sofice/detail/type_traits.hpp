@@ -31,6 +31,9 @@ namespace sofice
 	template<>
 	struct is_string<std::string> : std::true_type {};
 
+	template<typename T>
+	static constexpr bool is_string_v = is_string<T>::value;
+
 	template<class T,class = std::void_t<>>
 	struct is_container : std::false_type { };
 

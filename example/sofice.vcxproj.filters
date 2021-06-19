@@ -59,5 +59,20 @@
     <ClInclude Include="..\include\sofice\detail\singleton.hpp">
       <Filter>include\sofice\detail</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\sofice\service.hpp">
+      <Filter>include\sofice</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\sofice\service_pool.hpp">
+      <Filter>include\sofice</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\sofice\context.hpp">
+      <Filter>include\sofice</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\sofice\select.hpp">
+      <Filter>include\sofice</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\sofice\update.hpp">
+      <Filter>include\sofice</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

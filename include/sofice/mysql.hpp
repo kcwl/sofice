@@ -63,35 +63,29 @@ namespace sofice
 				return error_;
 			}
 
-			bool excute_sql(const std::string& sql)
-			{
-				mysql_query(conn_ptr_, sql.c_str());
-				return true;
-			}
-
-			bool excute_no_sql(const std::string& sql)
+			bool excute(const std::string& sql)
 			{
 				return mysql_query(conn_ptr_,sql.c_str()) == 0;
 			}
 
 			template<class T>
-			auto create_table(const std::string& engine = "InnoDB", const std::string& charset = "utf8")
+			auto create(const std::string& key, const std::string& engine = "InnoDB", const std::string& charset = "utf8")
 			{
-				auto sql = detail::create_table_sql(T{}, engine, charset);
+				auto sql = detail::create<T>(key, engine, charset);
 
-				return excute_no_sql(sql);
+				return excute(sql);
 			}
 
 			template<class T>
-			auto delete_table()
+			auto remove()
 			{
-				return excute_no_sql("");
+				return excute(detail::remove<T>());
 			}
 
 			template<class T>
-			auto insert(T&& t)
+			auto insert(T const& t)
 			{
-				return excute_no_sql(detail::generate_sql<insert_mode>(t));
+				return excute(detail::generate<insert_mode,T>::sql(t));
 			}
 
 			template<class T, class = std::void_t<decltype(std::declval<T>().begin()),decltype(std::declval<T>().end())>>
@@ -132,35 +126,35 @@ namespace sofice
 			}
 
 			template<class T>
-			auto update(T&& t, const std::string& condition)
+			auto update(T const& t)
 			{
-				auto sql = detail::generate_sql<update_mode>(t);
+				std::string sql = detail::generate<update_mode,T>::sql(t);
 
-				return excute_no_sql(sql);
+				return excute(sql);
 			}
 
 			template<class T>
-			auto remove(const std::string& condition = "")
+			auto remove(T const& value )
 			{
-				auto sql = detail::generate_sql(T{}, delete_mode{});
+				auto sql = detail::generate<delete_mode,T>::sql(value);
 
-				return excute_no_sql(sql);
+				return excute(sql);
 			}
 
 			template<class T>
-			auto select(const std::string& condition = "")
+			auto select()
 			{
 				std::vector<T> results{};
 
-				auto sql = detail::generate_sql<select_mode>(T{});
+				auto sql = detail::generate<select_mode,T>::sql();
 
-				excute_sql(sql + condition);
+				excute(sql);
 
 				auto res = mysql_store_result(conn_ptr_);
 
 				while (auto column = mysql_fetch_row(res))
 				{
-					results.push_back(detail::construct_data<T>(column));
+					results.push_back(detail::to_struct<T>(column));
 				}
 
 				return results;

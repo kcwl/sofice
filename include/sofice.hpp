@@ -4,6 +4,8 @@
 #include "sofice/mysql.hpp"
 #include "sofice/detail/algorithm.hpp"
 
+#include "sofice/context.hpp"
+
 namespace sofice
 {
 	template<class T>
