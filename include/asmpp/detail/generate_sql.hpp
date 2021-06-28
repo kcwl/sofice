@@ -47,7 +47,7 @@ namespace asmpp
 		template<typename Mode, typename T>
 		struct generate 
 		{
-			static std::string sql(T&& val)
+			static std::string sql(T&& val, std::string condition)
 			{
 				return std::string{};
 			}
@@ -56,7 +56,7 @@ namespace asmpp
 		template<typename T>
 		struct generate<insert_mode,T>
 		{
-			static std::string sql(T const& val)
+			static std::string sql(T const& val,std::string condition)
 			{
 				constexpr auto table_name = reflect::rf_name<T>();
 
@@ -119,11 +119,16 @@ namespace asmpp
 		template<typename T>
 		struct generate<select_mode, T>
 		{
-			static std::string sql()
+			static std::string sql(std::string condition)
 			{
 				auto table_name = std::string(reflect::rf_name<std::remove_reference_t<T>>());
 
-				std::string sql = "select * from " + std::string(table_name) + ";";
+				std::string sql = "select * from " + std::string(table_name);
+
+				if(!condition.empty())
+					sql.append(" where " + condition);
+
+				sql.append(";");
 
 				return sql;
 			}

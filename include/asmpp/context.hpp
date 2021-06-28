@@ -23,21 +23,21 @@ namespace asmpp
 
 	public:
 		template<typename T, typename Func>
-		void select(Func&& f)
+		void select(Func&& f,std::string condition = "")
 		{
-			select_context{pool_.get_service()}.excute<T>(std::forward<Func>(f));
+			select_context{pool_.get_service()}.excute<T>(std::forward<Func>(f),condition);
 		}
 
 		template<typename T>
 		void insert(const T& value)
 		{
-			update_context{pool_.get_service()}.excute<T, asmpp::insert_mode>(value);
+			update_context{pool_.get_service()}.excute<T, asmpp::insert_mode>(value,"");
 		}
 
 		template<typename T>
 		void update(const T& value)
 		{
-			update_context{pool_.get_service()}.excute<T, asmpp::update_mode>(value);
+			update_context{pool_.get_service()}.excute<T, asmpp::update_mode>(value,"");
 		}
 
 		template<typename T>
@@ -50,6 +50,17 @@ namespace asmpp
 		void create()
 		{
 			update_context{pool_.get_service()}.excute<T, asmpp::create_mode>();
+		}
+
+		template<typename T>
+		T query(std::string sql)
+		{
+			auto result = select_context{pool_.get_service()}.query<T>(sql);
+
+			if(result.empty())
+				return T{};
+
+			return result.at(0);
 		}
 
 	private:

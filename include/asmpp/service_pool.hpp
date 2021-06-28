@@ -25,7 +25,7 @@ namespace asmpp
 
 		void run()
 		{
-			//mysql_init(nullptr);
+			mysql_init(nullptr);
 
 			std::vector<std::shared_ptr<std::thread>> thread_pool_;
 			std::for_each(service_pool_.begin(), service_pool_.end(), [&thread_pool_](auto iter)

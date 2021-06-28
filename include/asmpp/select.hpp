@@ -14,9 +14,9 @@ namespace asmpp
 
 	public:
 		template<typename T, typename Func>
-		void excute(Func&& f)
+		void excute(Func&& f,std::string condition)
 		{
-			auto sql = asmpp::detail::template generate<asmpp::select_mode, T>::sql();
+			auto sql = asmpp::detail::template generate<asmpp::select_mode, T>::sql(condition);
 
 			auto results = service_ptr_->real_query<T>(sql);
 
@@ -24,6 +24,12 @@ namespace asmpp
 				return;
 
 			f(results);
+		}
+
+		template<typename T>
+		std::vector<T> query(std::string sql)
+		{
+			return service_ptr_->real_query<T>(sql);
 		}
 
 	private:
