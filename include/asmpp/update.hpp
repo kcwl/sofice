@@ -16,7 +16,7 @@ namespace asmpp
 		template<typename T, typename Tag>
 		std::size_t excute(T value)
 		{
-			auto sql = asmpp::detail::template generate<Tag, T>::sql(std::move(value));
+			auto sql = asmpp::detail::template generate<Tag, T>::sql(std::move(value),"");
 
 			return service_ptr_->query(sql);
 		}
