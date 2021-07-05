@@ -31,7 +31,14 @@ namespace asmpp
 		template<typename T>
 		void insert(const T& value)
 		{
-			update_context{pool_.get_service()}.excute<T, asmpp::insert_mode>(value,"");
+			update_context{pool_.get_service()}.excute<T, asmpp::insert_mode>(value);
+		}
+
+		template<typename T>
+		void insert(const std::vector<T>& values)
+		{
+			for(auto& iter : values)
+				insert(iter);
 		}
 
 		template<typename T>
