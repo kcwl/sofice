@@ -55,6 +55,13 @@ namespace asmpp
 				insert(iter, std::forward<Func>(f));
 		}
 
+		template<typename T>
+		void insert(const std::vector<T>& values)
+		{
+			for(auto& iter : values)
+				insert(iter, [](auto ec){});
+		}
+
 		template<typename T,typename Func>
 		void update(const T& value,const std::string& condition, Func&& f)
 		{
