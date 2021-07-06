@@ -62,7 +62,8 @@ namespace asmpp
 
 		std::size_t query(const std::string& sql,error_code& error)
 		{
-			auto res = mysql_query(mysql_ptr_, sql.c_str());
+			auto wsql = detail::to_uft8(sql);
+			auto res = mysql_query(mysql_ptr_, wsql.c_str());
 			error = error_code(mysql_error(mysql_ptr_), mysql_errno(mysql_ptr_));
 			return res;
 		}

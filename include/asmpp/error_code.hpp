@@ -20,6 +20,7 @@ namespace asmpp
 			if(this != &error)
 			{
 				this->error_ = error.what();
+				this->code_ = error.error();
 			}
 				
 			return *this;
@@ -27,7 +28,7 @@ namespace asmpp
 	public:
 		std::string what() const
 		{
-			return !error_.empty()?error_:"Unknown Error!";
+			return !error_.empty()?error_:"Success!";
 		}
 
 		std::size_t error() const

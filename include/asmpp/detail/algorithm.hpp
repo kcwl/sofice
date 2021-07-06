@@ -6,6 +6,7 @@
 #include <algorithm>
 #include "type_traits.hpp"
 #include "../reflect/include/reflect.hpp"
+#include <codecvt>
 
 namespace asmpp
 {
@@ -149,5 +150,52 @@ namespace asmpp
 
 		template<std::string_view const&... strs>
 		constexpr static auto concat_v = concat<strs...>::value;
+
+		std::string to_uft8(const std::string& str)
+		{
+			std::vector<wchar_t> buff(str.size());
+
+#ifdef _MSC_VER
+			std::locale loc("zh-CN");
+#else
+			std::locale loc("zh_CN.GB18030");
+#endif
+
+			wchar_t* wnext = nullptr;
+			const char* next = nullptr;
+			mbstate_t state{};
+
+			int res = std::use_facet<std::codecvt<wchar_t, char, mbstate_t>>(loc).in(state, str.data(), str.data() + str.size(), next, buff.data(), buff.data() + buff.size(), wnext);
+			if(res != std::codecvt_base::ok)
+				return "";
+
+			std::wstring_convert<std::codecvt_utf8<wchar_t>> cuft8;
+
+			return cuft8.to_bytes(std::wstring(buff.data(), wnext));
+		}
+
+		std::string to_gbk(const std::string& str)
+		{
+			std::vector<char> buff(str.size() * 2);
+
+			std::wstring_convert<std::codecvt_utf8<wchar_t>> cutf8;
+			std::wstring wtmp = cutf8.from_bytes(str);
+
+#ifdef _MSC_VER
+			std::locale loc("zh-CN");
+#else
+			std::locale loc("zh_CN.GB18030");
+#endif
+
+			const wchar_t* wnext = nullptr;
+			char* next = nullptr;
+
+			mbstate_t state{};
+			int res = std::use_facet<std::codecvt<wchar_t, char, mbstate_t>>(loc).out(state, wtmp.data(), wtmp.data() + wtmp.size(), wnext, buff.data(), buff.data() + buff.size(), next);
+			if(res != std::codecvt_base::ok)
+				return {};
+
+			return std::string(buff.data(), next);
+		}
 	}
 }
