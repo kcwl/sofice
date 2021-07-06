@@ -3,6 +3,7 @@
 #include <string>
 #include <string_view>
 #include <mysql.h>
+#include <algorithm>
 #include "type_traits.hpp"
 #include "../reflect/include/reflect.hpp"
 

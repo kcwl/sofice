@@ -15,6 +15,8 @@ namespace asmpp
 
 	struct create_mode { };
 
+	struct remove_mode { };
+
 
 	template<class T>
 	struct is_string : std::false_type {};

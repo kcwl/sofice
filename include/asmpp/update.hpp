@@ -4,29 +4,31 @@
 
 namespace asmpp
 {
-	class update_context
+	class ctx_update
 	{
 	public:
-		explicit update_context(std::shared_ptr<service> service_ptr)
+		explicit ctx_update(std::shared_ptr<service> service_ptr)
 			: service_ptr_(service_ptr)
 		{
 		}
 
 	public:
-		template<typename T, typename Tag>
-		std::size_t excute(T value)
+		template<typename T, typename Func>
+		void query(T value,const std::string& condition, Func&& f)
 		{
-			auto sql = asmpp::detail::template generate<Tag, T>::sql(std::move(value));
+			auto sql = asmpp::detail::template generate<update_mode, T>::sql(std::move(value), condition);
 
-			return service_ptr_->query(sql);
+			error_code ec;
+
+			service_ptr_->query(sql,ec);
+
+			f(ec);
 		}
 
-		template<typename T, typename Tag>
-		std::size_t excute()
+		template<typename T, typename Func>
+		void query(T value,const std::string& condition="")
 		{
-			auto sql = asmpp::detail::template generate<Tag, T>::sql();
-
-			return service_ptr_->query(sql);
+			this->template query(value, condition, [](auto ec){});
 		}
 
 	private:
