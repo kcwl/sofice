@@ -2,6 +2,7 @@
 #include <mysql.h>
 #include <string>
 #include "detail/algorithm.hpp"
+#include "error_code.hpp"
 
 namespace asmpp
 {
@@ -43,7 +44,6 @@ namespace asmpp
 
 			if(std::apply(mysql_real_connect, tp) == nullptr)
 			{
-				std::cout << mysql_error(mysql_ptr_) << std::endl;
 				return false;
 			}
 
@@ -60,13 +60,15 @@ namespace asmpp
 			charset_ = charset;
 		}
 
-		std::size_t query(const std::string& sql)
+		std::size_t query(const std::string& sql,error_code& error)
 		{
-			return mysql_query(mysql_ptr_, sql.c_str());
+			auto res = mysql_query(mysql_ptr_, sql.c_str());
+			error = error_code(mysql_error(mysql_ptr_), mysql_errno(mysql_ptr_));
+			return res;
 		}
 
 		template<typename T>
-		std::vector<T> real_query(const std::string& sql)
+		std::vector<T> real_query(const std::string& sql,error_code& ec)
 		{
 			std::vector<T> results;
 
@@ -74,11 +76,12 @@ namespace asmpp
 				return results;
 
 			auto res_err = query(sql);
+
 			if(res_err != 0)
 			{
 				auto str = mysql_error(mysql_ptr_);
 
-				std::cout << str << std::endl;
+				ec = error_code(mysql_error(mysql_ptr_), mysql_errno(mysql_ptr_));
 
 				return results;
 			}

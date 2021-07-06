@@ -104,13 +104,13 @@ namespace asmpp
 		};
 
 		template<typename T>
-		struct generate<delete_mode,T>
+		struct generate<remove_mode,T>
 		{
-			static std::string sql()
+			static std::string sql(const std::string& condition)
 			{
 				auto table_name = std::string(reflect::rf_name<std::remove_reference_t<T>>());
 
-				std::string sql = "delete from " + std::string(table_name) + ";";
+				std::string sql = "delete from " + std::string(table_name) + " " + condition + ";";
 
 				return sql;
 			}
@@ -119,7 +119,7 @@ namespace asmpp
 		template<typename T>
 		struct generate<select_mode, T>
 		{
-			static std::string sql(std::string condition)
+			static std::string sql(const std::string& condition)
 			{
 				auto table_name = std::string(reflect::rf_name<std::remove_reference_t<T>>());
 

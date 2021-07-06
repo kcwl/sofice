@@ -4,32 +4,34 @@
 
 namespace asmpp
 {
-	class select_context
+	class ctx_select
 	{
 	public:
-		explicit select_context(std::shared_ptr<service> service_ptr)
+		explicit ctx_select(std::shared_ptr<service> service_ptr)
 			: service_ptr_(service_ptr)
 		{
 		}
 
 	public:
 		template<typename T, typename Func>
-		void excute(Func&& f,std::string condition)
+		void query_if(const std::string& condition, Func&& f)
 		{
 			auto sql = asmpp::detail::template generate<asmpp::select_mode, T>::sql(condition);
 
-			auto results = service_ptr_->real_query<T>(sql);
+			error_code ec;
 
-			if(results.empty())
-				return;
+			auto results = service_ptr_->real_query<T>(sql,ec);
 
-			f(results);
+			f(ec,results);
 		}
 
-		template<typename T>
-		std::vector<T> query(std::string sql)
+		template<typename T,typename Func>
+		void query(const std::string& sql,Func&& f)
 		{
-			return service_ptr_->real_query<T>(sql);
+			error_code ec;
+			auto results = service_ptr_->real_query<T>(sql,ec);
+
+			f(ec, results);
 		}
 
 	private:
