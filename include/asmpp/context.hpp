@@ -68,10 +68,17 @@ namespace asmpp
 			ctx_update{pool_.get_service()}.query<T>(value,condition,std::forward<Func>(f));
 		}
 
-		template<typename T, typename Func>
+		template<typename T>
 		void update(const T& value, const std::string& condition="")
 		{
 			ctx_update{pool_.get_service()}.query<T>(value, condition, [](auto ec){});
+		}
+
+		template<typename T>
+		void update(const std::vector<T>& value,const std::string& condition="")
+		{
+			for(auto& iter : value)
+				update(iter, condition);
 		}
 
 		template<typename T>
