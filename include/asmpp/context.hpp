@@ -75,6 +75,13 @@ namespace asmpp
 		}
 
 		template<typename T>
+		void update(const std::vector<T>& value,const std::string& condition="")
+		{
+			for(auto& iter : value)
+				update(iter, condition);
+		}
+
+		template<typename T>
 		void remove()
 		{
 			ctx_remove{pool_.get_service()}.query<T>();
